@@ -61,7 +61,7 @@ export const summaryApi = {
   getSummary: (): Promise<{ summary: SummaryData }> =>
     api.get('/summary').then(res => res.data),
   
-  getChartData: (): Promise<{ chartData: any }> =>
+  getChartData: (): Promise<{ chartData: Record<string, unknown> }> =>
     api.get('/summary/charts').then(res => res.data),
 };
 

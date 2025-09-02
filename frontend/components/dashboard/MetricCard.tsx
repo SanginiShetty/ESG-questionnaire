@@ -12,7 +12,7 @@ interface MetricCardProps {
   trendValue?: string;
   chart?: {
     type: 'pie' | 'bar';
-    data: any[];
+    data: { name: string; value: number }[];
     colors?: string[];
   };
   className?: string;
