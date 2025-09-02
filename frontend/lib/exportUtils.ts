@@ -46,7 +46,7 @@ export const exportToPDF = (responses: ESGResponse[], summary: SummaryData, user
   doc.text('Detailed Responses', 20, yPosition);
   yPosition += 15;
 
-  responses.forEach((response, index) => {
+  responses.forEach((response) => {
     if (yPosition > 250) {
       doc.addPage();
       yPosition = 20;

@@ -10,14 +10,11 @@ import { ESGResponse, SummaryData } from '@/types';
 import { Loader } from '@/components/ui/Loader';
 import { useRouter } from 'next/navigation';
 import { 
-  Download, 
   FileText, 
-  TrendingUp, 
   Users, 
   Globe, 
   Shield,
   BarChart3,
-  PieChart,
   Activity
 } from 'lucide-react';
 import {
@@ -28,15 +25,12 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
   ResponsiveContainer,
   LineChart,
   Line
 } from 'recharts';
 
-const COLORS = ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444', '#06B6D4'];
+// Removed unused COLORS constant
 
 export default function SummaryPage() {
   const router = useRouter();

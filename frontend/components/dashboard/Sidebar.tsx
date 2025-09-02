@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BarChart3, Leaf, Users, Building, Settings, LogOut, FileText, ClipboardList } from 'lucide-react';
+import { BarChart3, Leaf, Settings, LogOut, FileText, ClipboardList } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 

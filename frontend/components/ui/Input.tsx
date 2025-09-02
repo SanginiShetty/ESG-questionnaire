@@ -67,7 +67,6 @@ export const Input: React.FC<InputProps> = ({
   ...props
 }) => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
   
   const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
   const inputType = showPasswordToggle ? (showPassword ? 'text' : 'password') : type;
