@@ -76,7 +76,7 @@ interface SummaryCardProps {
   subtitle?: string;
   trend?: 'up' | 'down' | 'neutral';
   trendValue?: string;
-  icon?: React.ReactNode;
+  icon?: React.ReactElement<any>;
   color?: 'primary' | 'success' | 'warning' | 'danger';
   variant?: 'default' | 'gradient' | 'elevated';
 }
@@ -118,11 +118,13 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
     up: 'text-emerald-600 bg-emerald-50',
     down: 'text-red-600 bg-red-50',
     neutral: 'text-slate-600 bg-slate-50',
-  };
-
-  const trendIcons = {
-    up: (
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+          {icon && React.isValidElement(icon) && (
+            <div className={`p-3 rounded-full ${colorClasses[color]} border`}>
+              {React.cloneElement(icon, {
+                className: 'w-6 h-6'
+              })}
+            </div>
+          )}
         <path d="M7 14l5-5 5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     ),
@@ -181,9 +183,9 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
               </p>
             )}
           </div>
-          
-          {/* Enhanced icon with glassmorphism effect */}
-          {icon && (
+                {React.cloneElement(icon, {
+                  className: (icon.props.className ? icon.props.className + ' ' : '') + 'w-6 h-6'
+                })}
             <div className={`
               relative p-4 rounded-2xl border backdrop-blur-sm
               ${colorClasses[color].icon} ${colorClasses[color].iconShadow}
