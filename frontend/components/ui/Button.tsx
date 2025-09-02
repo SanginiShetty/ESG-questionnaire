@@ -150,9 +150,9 @@ export const Button: React.FC<ButtonProps> = ({
       );
     }
 
-    const iconElement = icon && React.cloneElement(icon as React.ReactElement, {
-      size: iconSizes[size]
-    });
+    const iconElement = icon && React.isValidElement(icon)
+      ? React.cloneElement(icon as React.ReactElement<{ size?: number | string }>, { size: iconSizes[size] })
+      : null;
 
     if (icon && iconPosition === 'left') {
       return (
