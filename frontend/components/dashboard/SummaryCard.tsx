@@ -1,72 +1,4 @@
-// import React from 'react';
 
-// interface SummaryCardProps {
-//   title: string;
-//   value: string | number;
-//   subtitle?: string;
-//   trend?: 'up' | 'down' | 'neutral';
-//   trendValue?: string;
-//   icon?: React.ReactNode;
-//   color?: 'primary' | 'success' | 'warning' | 'danger';
-// }
-
-// export const SummaryCard: React.FC<SummaryCardProps> = ({
-//   title,
-//   value,
-//   subtitle,
-//   trend,
-//   trendValue,
-//   icon,
-//   color = 'primary'
-// }) => {
-//   const colorClasses = {
-//     primary: 'text-primary-600 bg-primary-50 border-primary-200',
-//     success: 'text-green-600 bg-green-50 border-green-200',
-//     warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
-//     danger: 'text-red-600 bg-red-50 border-red-200',
-//   };
-
-//   const trendColors = {
-//     up: 'text-green-600',
-//     down: 'text-red-600',
-//     neutral: 'text-gray-600',
-//   };
-
-//   const trendIcons = {
-//     up: '↗',
-//     down: '↘',
-//     neutral: '→',
-//   };
-
-//   return (
-//     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-//       <div className="flex items-center justify-between">
-//         <div className="flex-1">
-//           <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-//           <p className="text-3xl font-bold text-gray-900">{value}</p>
-//           {subtitle && (
-//             <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
-//           )}
-//         </div>
-        
-//         {icon && (
-//           <div className={`p-3 rounded-full ${colorClasses[color]} border`}>
-//             {icon}
-//           </div>
-//         )}
-//       </div>
-      
-//       {trend && trendValue && (
-//         <div className="mt-4 flex items-center space-x-2">
-//           <span className={`text-sm font-medium ${trendColors[trend]}`}>
-//             {trendIcons[trend]} {trendValue}
-//           </span>
-//           <span className="text-sm text-gray-500">vs previous year</span>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
 
 import React from 'react';
 
@@ -120,6 +52,25 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
     neutral: 'text-slate-600 bg-slate-50',
   };
 
+  // Add missing trendIcons object
+  const trendIcons = {
+    up: (
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+        <path d="M7 14l5-5 5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    down: (
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+        <path d="M17 10l-5 5-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    neutral: (
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+        <path d="M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ),
+  };
+
   const getCardClasses = () => {
     const baseClasses = 'group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1';
     
@@ -151,30 +102,25 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
               </p>
               <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${colorClasses[color].accent} opacity-60`}></div>
             </div>
-            
             {/* Value with enhanced typography */}
             <p className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2 leading-none">
               {value}
             </p>
-            
             {subtitle && (
               <p className="text-sm text-gray-500 font-medium">
                 {subtitle}
               </p>
             )}
           </div>
-                {React.cloneElement(icon, {
-                  className: (icon.props.className ? icon.props.className + ' ' : '') + 'w-6 h-6'
-                })}
+          {/* Icon rendering, only if icon is defined and valid */}
+          {icon && React.isValidElement(icon) && (
             <div className={`
               relative p-4 rounded-2xl border backdrop-blur-sm
               ${colorClasses[color].icon} ${colorClasses[color].iconShadow}
               transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3
             `}>
-              <div className="relative z-10">
-                {React.cloneElement(icon as React.ReactElement, {
-                  className: 'w-6 h-6'
-                })}
+              <div className="relative z-10 w-6 h-6 flex items-center justify-center">
+                {icon}
               </div>
               {/* Subtle inner glow */}
               <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${colorClasses[color].accent} opacity-5`}></div>
@@ -202,7 +148,6 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
                   vs previous period
                 </span>
               </div>
-              
               {/* Trend sparkline placeholder */}
               <div className="hidden sm:flex items-center space-x-1">
                 {[...Array(8)].map((_, i) => (

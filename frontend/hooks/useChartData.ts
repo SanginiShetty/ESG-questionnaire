@@ -12,7 +12,7 @@ export const useChartData = () => {
       setLoading(true);
       setError(null);
       const { chartData: data } = await summaryApi.getChartData();
-      setChartData(data);
+  setChartData(data as unknown as ChartData);
     } catch (err) {
       console.error('Failed to load chart data:', err);
       setError('Failed to load chart data');

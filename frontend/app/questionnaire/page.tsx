@@ -468,11 +468,11 @@ export default function QuestionnairePage() {
                         <label className="block text-sm font-semibold text-gray-800 mb-2">
                           Data Privacy Policy
                         </label>
-                        <select 
-                          value={formData.hasDataPrivacyPolicy === true ? 'true' : formData.hasDataPrivacyPolicy === false ? 'false' : ''}
-                          onChange={e => handleFieldChange('hasDataPrivacyPolicy', e.target.value === 'true')}
-                          className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg 
-                                    focus:ring-2 focus:ring-purple-500 focus:border-purple-500  text-gray-600"
+                          <select 
+                            value={formData.hasDataPrivacyPolicy === true ? 'true' : formData.hasDataPrivacyPolicy === false ? 'false' : ''}
+                            onChange={e => handleFieldChange('hasDataPrivacyPolicy', e.target.value === 'true')}
+                            className="w-full px-4 py-3 text-base text-black border-2 border-gray-300 rounded-lg 
+                                      focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                         >
                           <option value="" className="text-gray-600">Select an option</option>
                           <option value="true" className="text-gray-600">Yes</option>
