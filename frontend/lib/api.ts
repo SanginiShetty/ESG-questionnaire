@@ -45,24 +45,24 @@ export const authApi = {
 
 export const responseApi = {
   getAll: (): Promise<{ responses: ESGResponse[] }> =>
-    api.get('/responses').then(res => res.data),
-  
+    api.get('/api/responses').then(res => res.data),
+
   getByYear: (year: number): Promise<{ response: ESGResponse }> =>
-    api.get(`/responses/${year}`).then(res => res.data),
-  
+    api.get(`/api/responses/${year}`).then(res => res.data),
+
   save: (data: ESGResponse): Promise<{ message: string; response: ESGResponse }> =>
-    api.post('/responses', data).then(res => res.data),
-  
+    api.post('/api/responses', data).then(res => res.data),
+
   delete: (year: number): Promise<{ message: string }> =>
-    api.delete(`/responses/${year}`).then(res => res.data),
+    api.delete(`/api/responses/${year}`).then(res => res.data),
 };
 
 export const summaryApi = {
   getSummary: (): Promise<{ summary: SummaryData }> =>
-    api.get('/summary').then(res => res.data),
-  
+    api.get('/api/summary').then(res => res.data),
+
   getChartData: (): Promise<{ chartData: Record<string, unknown> }> =>
-    api.get('/summary/charts').then(res => res.data),
+    api.get('/api/summary/charts').then(res => res.data),
 };
 
 export default api;
