@@ -18,7 +18,7 @@ interface MetricCardProps {
   className?: string;
 }
 
-const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#F97316'];
+//const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#F97316'];
 
 const defaultPieColors = ['#10B981', '#34D399', '#6EE7B7', '#A7F3D0'];
 

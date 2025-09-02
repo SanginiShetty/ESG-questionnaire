@@ -8,7 +8,7 @@ interface SummaryCardProps {
   subtitle?: string;
   trend?: 'up' | 'down' | 'neutral';
   trendValue?: string;
-  icon?: React.ReactElement<any>;
+  icon?: React.ReactElement<unknown>;
   color?: 'primary' | 'success' | 'warning' | 'danger';
   variant?: 'default' | 'gradient' | 'elevated';
 }
