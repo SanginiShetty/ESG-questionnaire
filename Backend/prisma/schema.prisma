@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String
+  password  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  responses Response[]
+
+  @@map("users")
+}
+
+model Response {
+  id                              String   @id @default(cuid())
+  userId                          String
+  year                            Int
+  createdAt                       DateTime @default(now())
+  updatedAt                       DateTime @updatedAt
+  totalElectricityConsumption     Float?
+  renewableElectricityConsumption Float?
+  totalFuelConsumption            Float?
+  carbonEmissions                 Float?
+  totalEmployees                  Int?
+  femaleEmployees                 Int?
+  averageTrainingHours            Float?
+  communityInvestmentSpend        Float?
+  independentBoardMembersPercent  Float?
+  hasDataPrivacyPolicy            Boolean?
+  totalRevenue                    Float?
+  carbonIntensity                 Float?
+  renewableElectricityRatio       Float?
+  diversityRatio                  Float?
+  communitySpendRatio             Float?
+  user                            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, year])
+  @@map("responses")
+}
