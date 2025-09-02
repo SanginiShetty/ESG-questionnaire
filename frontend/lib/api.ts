@@ -34,13 +34,13 @@ api.interceptors.response.use(
 
 export const authApi = {
   login: (email: string, password: string): Promise<AuthResponse> =>
-    api.post('/auth/login', { email, password }).then(res => res.data),
-  
+    api.post('/api/auth/login', { email, password }).then(res => res.data),
+
   register: (name: string, email: string, password: string): Promise<AuthResponse> =>
-    api.post('/auth/register', { name, email, password }).then(res => res.data),
-  
+    api.post('/api/auth/register', { name, email, password }).then(res => res.data),
+
   getCurrentUser: (): Promise<{ user: User }> =>
-    api.get('/auth/me').then(res => res.data),
+    api.get('/api/auth/me').then(res => res.data),
 };
 
 export const responseApi = {
