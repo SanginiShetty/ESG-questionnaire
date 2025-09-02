@@ -118,26 +118,6 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
     up: 'text-emerald-600 bg-emerald-50',
     down: 'text-red-600 bg-red-50',
     neutral: 'text-slate-600 bg-slate-50',
-          {icon && React.isValidElement(icon) && (
-            <div className={`p-3 rounded-full ${colorClasses[color]} border`}>
-              {React.cloneElement(icon, {
-                className: 'w-6 h-6'
-              })}
-            </div>
-          )}
-        <path d="M7 14l5-5 5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-    down: (
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-        <path d="M17 10l-5 5-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-    neutral: (
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-        <path d="M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ),
   };
 
   const getCardClasses = () => {

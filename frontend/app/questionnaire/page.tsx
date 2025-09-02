@@ -464,7 +464,6 @@ export default function QuestionnairePage() {
                           <p className="text-sm text-red-600 mt-1 font-medium">{errors.independentBoardMembersPercent}</p>
                         }
                       </div>
-
                       <div>
                         <label className="block text-sm font-semibold text-gray-800 mb-2">
                           Data Privacy Policy
@@ -472,16 +471,18 @@ export default function QuestionnairePage() {
                         <select 
                           value={formData.hasDataPrivacyPolicy === true ? 'true' : formData.hasDataPrivacyPolicy === false ? 'false' : ''}
                           onChange={e => handleFieldChange('hasDataPrivacyPolicy', e.target.value === 'true')}
-                          className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white"
+                          className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg 
+                                    focus:ring-2 focus:ring-purple-500 focus:border-purple-500  text-gray-600"
                         >
-                          <option value="">Select an option</option>
-                          <option value="true">Yes</option>
-                          <option value="false">No</option>
+                          <option value="" className="text-gray-600">Select an option</option>
+                          <option value="true" className="text-gray-600">Yes</option>
+                          <option value="false" className="text-gray-600">No</option>
                         </select>
                         {errors.hasDataPrivacyPolicy && 
                           <p className="text-sm text-red-600 mt-1 font-medium">{errors.hasDataPrivacyPolicy}</p>
                         }
                       </div>
+
 
                       <div className="md:col-span-2">
                         <label className="block text-sm font-semibold text-gray-800 mb-2">
