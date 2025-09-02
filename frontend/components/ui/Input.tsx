@@ -122,14 +122,8 @@ export const Input: React.FC<InputProps> = ({
           id={inputId}
           type={inputType}
           className={`${getInputClasses()} ${className}`}
-          onFocus={(e) => {
-            setIsFocused(true);
-            props.onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            setIsFocused(false);
-            props.onBlur?.(e);
-          }}
+          onFocus={props.onFocus}
+          onBlur={props.onBlur}
           {...props}
         />
         
