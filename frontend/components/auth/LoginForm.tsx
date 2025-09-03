@@ -9,8 +9,8 @@ interface LoginFormProps {
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading = false }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@example.com');
+  const [password, setPassword] = useState('admin123');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {

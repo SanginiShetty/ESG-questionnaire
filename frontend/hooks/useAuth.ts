@@ -162,6 +162,7 @@ export const useAuth = () => {
     user,
     loading,
     isAuthenticated,
+    token: getAuthToken(),
     login,
     register,
     logout,

@@ -29,8 +29,17 @@ model Response {
   renewableElectricityConsumption Float?
   totalFuelConsumption            Float?
   carbonEmissions                 Float?
+  waterConsumption                Float?
+  energyUsage                     Float?
+  wasteGenerated                  Float?
   totalEmployees                  Int?
   femaleEmployees                 Int?
+  employeeTurnoverRate            Float?
+  workplaceAccidents              Int?
+  femaleRepresentation            Float?
+  minorityRepresentation          Float?
+  boardIndependence               Float?
+  executiveCompensationRatio      Float?
   averageTrainingHours            Float?
   communityInvestmentSpend        Float?
   independentBoardMembersPercent  Float?

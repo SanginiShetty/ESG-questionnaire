@@ -3,8 +3,69 @@ const { body } = require('express-validator');
 const prisma = require('../utils/prisma');
 const { handleValidationErrors } = require('../middleware/validation');
 const { authenticateToken } = require('../middleware/auth');
+const multer = require('multer');
+const { parsePdf, parseXlsx, extractDataWithGemini } = require('../utils/parser');
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
+
+router.post('/upload', [authenticateToken, upload.single('file')], async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded.' });
+        }
+
+        const { year } = req.body;
+        if (!year || isNaN(parseInt(year))) {
+            return res.status(400).json({ error: 'Year is required.' });
+        }
+
+    let text;
+    if (req.file.mimetype === 'application/pdf') {
+      text = await parsePdf(req.file.buffer);
+    } else if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+      text = await parseXlsx(req.file.buffer);
+    } else {
+      return res.status(400).json({ error: 'Unsupported file type. Please upload a PDF or Excel file.' });
+    }
+
+        const extractedData = await extractDataWithGemini(text);
+
+        const responseData = {
+            year: parseInt(year),
+            userId: req.user.id,
+            carbonEmissions: extractedData.environmental.carbon_emissions.value,
+            waterConsumption: extractedData.environmental.water_consumption.value,
+            energyUsage: extractedData.environmental.energy_usage.value,
+            wasteGenerated: extractedData.environmental.waste_generated.value,
+            employeeTurnoverRate: extractedData.social.employee_turnover_rate.value,
+            workplaceAccidents: extractedData.social.workplace_accidents.value,
+            femaleRepresentation: extractedData.social.diversity_and_inclusion.female_representation.value,
+            minorityRepresentation: extractedData.social.diversity_and_inclusion.minority_representation.value,
+            boardIndependence: extractedData.governance.board_independence.value,
+            executiveCompensationRatio: extractedData.governance.executive_compensation_ratio.value,
+        };
+
+        const response = await prisma.response.upsert({
+            where: {
+                userId_year: {
+                    userId: req.user.id,
+                    year: responseData.year,
+                },
+            },
+            update: responseData,
+            create: responseData,
+        });
+
+        res.json({
+            message: 'File processed and data saved successfully',
+            response,
+        });
+    } catch (error) {
+        console.error('File upload error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 // Calculate derived metrics
 const calculateDerivedMetrics = (data) => {
