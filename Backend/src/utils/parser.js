@@ -1,81 +1,229 @@
-
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const pdf = require("pdf-parse");
 const xlsx = require("xlsx");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Initialize Gemini AI with API key check
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY environment variable is not set');
+}
+
+// Initialize the API client
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY, {
+  apiVersion: 'v1',
+});
+
+// Check Gemini API connection
+async function checkGeminiStatus() {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const prompt = "Just reply with 'OK' if you can read this.";
+    
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    if (text && text.includes('OK')) {
+      console.log('✅ Gemini API connection successful');
+      return true;
+    } else {
+      throw new Error('Invalid response from Gemini API');
+    }
+  } catch (error) {
+    console.error('❌ Gemini API connection failed:', error);
+    console.error('Error details:', error.message);
+    return false;
+  }
+}
 
 async function parsePdf(buffer) {
-  const data = await pdf(buffer);
-  return data.text;
+  try {
+    console.log('📄 Starting PDF parsing...');
+    
+    // Validate buffer
+    if (!buffer || !(buffer instanceof Buffer)) {
+      console.error('Invalid buffer:', typeof buffer);
+      throw new Error('Invalid PDF buffer provided');
+    }
+    
+    console.log('Buffer size:', buffer.length, 'bytes');
+    
+    // Ensure we have a valid PDF header
+    const pdfHeader = buffer.slice(0, 5).toString();
+    if (pdfHeader !== '%PDF-') {
+      throw new Error('Invalid PDF format: Missing PDF header');
+    }
+
+    const options = {
+      max: 2, // Return up to 2 pages
+      version: 'v2.0.550'
+    };
+
+    const data = await pdf(buffer, options);
+    
+    if (!data) {
+      throw new Error('PDF parsing returned no data');
+    }
+
+    const extractedText = data.text;
+    
+    if (!extractedText || extractedText.trim().length === 0) {
+      throw new Error('No text content extracted from PDF');
+    }
+    
+    console.log(`✅ PDF parsed successfully. Extracted ${extractedText.length} characters`);
+    console.log('📝 Sample of extracted text:', extractedText.substring(0, 200) + '...');
+    
+    return extractedText;
+  } catch (error) {
+    console.error('❌ PDF parsing failed:', error);
+    if (error.message.includes('stream must have data')) {
+      throw new Error('PDF file appears to be empty or corrupted');
+    }
+    throw new Error(`Failed to parse PDF: ${error.message}`);
+  }
 }
 
 async function parseXlsx(buffer) {
-  const workbook = xlsx.read(buffer, { type: "buffer" });
-  const sheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[sheetName];
-  const json = xlsx.utils.sheet_to_json(worksheet);
-  return JSON.stringify(json);
+  try {
+    console.log('📊 Starting Excel parsing...');
+    const workbook = xlsx.read(buffer, { type: "buffer" });
+    const sheetName = workbook.SheetNames[0];
+    
+    if (!sheetName) {
+      throw new Error('Excel file contains no sheets');
+    }
+    
+    const worksheet = workbook.Sheets[sheetName];
+    const json = xlsx.utils.sheet_to_json(worksheet);
+    
+    console.log(`✅ Excel parsed successfully. Found ${json.length} rows of data`);
+    return JSON.stringify(json);
+  } catch (error) {
+    console.error('❌ Excel parsing failed:', error);
+    throw new Error(`Failed to parse Excel file: ${error.message}`);
+  }
 }
 
 async function extractDataWithGemini(text) {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  console.log('🤖 Starting Gemini data extraction...');
   
-  const prompt = `
-    Extract the ESG data from the following text and return it as a JSON object.
-    The JSON object should follow this structure:
-    {
-      "environmental": {
-        "carbon_emissions": { "value": null, "unit": "tonnes CO2e" },
-        "water_consumption": { "value": null, "unit": "cubic meters" },
-        "energy_usage": { "value": null, "unit": "kWh" },
-        "waste_generated": { "value": null, "unit": "tonnes" }
-      },
-      "social": {
-        "employee_turnover_rate": { "value": null, "unit": "%" },
-        "workplace_accidents": { "value": null, "unit": "count" },
-        "diversity_and_inclusion": {
-          "female_representation": { "value": null, "unit": "%" },
-          "minority_representation": { "value": null, "unit": "%" }
-        }
-      },
-      "governance": {
-        "board_independence": { "value": null, "unit": "%" },
-        "executive_compensation_ratio": { "value": null, "unit": "ratio" }
-      }
+  // Validate and truncate input text if needed
+  if (!text || typeof text !== 'string') {
+    throw new Error('Invalid input: text must be a non-empty string');
+  }
+
+  const MAX_TEXT_LENGTH = 30000;
+  if (text.length > MAX_TEXT_LENGTH) {
+    console.warn(`⚠️ Text too long (${text.length} chars), truncating to ${MAX_TEXT_LENGTH} chars`);
+    text = text.substring(0, MAX_TEXT_LENGTH);
+  }
+
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-1.5-flash",
+    generationConfig: {
+      temperature: 0.1,
+      maxOutputTokens: 2048,
+      topP: 1,
+      topK: 1
     }
-    If a value is not present in the text, keep it as null.
-    Return only the JSON object, no additional text.
-    
-    Text to parse:
-    ${text}
-  `;
+  });
   
+  const promptParts = [
+    { 
+      text: `You are an ESG data extraction expert. Extract numeric values from the text below into a JSON object with exactly this structure:
+
+{
+  "environmental": {
+    "carbon_emissions": { "value": null, "unit": "tonnes CO2e" },
+    "water_consumption": { "value": null, "unit": "cubic meters" },
+    "energy_usage": { "value": null, "unit": "kWh" },
+    "waste_generated": { "value": null, "unit": "tonnes" }
+  },
+  "social": {
+    "employee_turnover_rate": { "value": null, "unit": "%" },
+    "workplace_accidents": { "value": null, "unit": "count" },
+    "diversity_and_inclusion": {
+      "female_representation": { "value": null, "unit": "%" },
+      "minority_representation": { "value": null, "unit": "%" }
+    }
+  },
+  "governance": {
+    "board_independence": { "value": null, "unit": "%" },
+    "executive_compensation_ratio": { "value": null, "unit": "ratio" }
+  }
+}
+
+Rules:
+1. Return ONLY the JSON object, no additional text
+2. Keep all property names and units exactly as shown
+3. Replace null with actual numbers when found in the text
+4. Keep null for missing values
+5. Ensure all values are numbers, not strings
+6. Maintain the exact structure`
+    },
+    {
+      text: `Text to analyze: ${text}`
+    }
+  ];
+
   const maxRetries = 3;
   let lastError;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const result = await model.generateContent(prompt);
+      console.log(`🔄 Attempt ${attempt}/${maxRetries}`);
+      
+      const result = await model.generateContent({ contents: [{ role: "user", parts: promptParts }] });
+      if (!result || !result.response) {
+        throw new Error('No response from Gemini API');
+      }
       const response = await result.response;
-      const responseText = await response.text();
+      const responseText = response.text();
+      
+      console.log('📥 Received response from Gemini');
+      console.log('Raw response:', responseText.substring(0, 200) + '...');
       
       // Clean the response to get a valid JSON string
-      const jsonString = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
-      return JSON.parse(jsonString);
+      let jsonString = responseText;
+      
+      // Remove any markdown code blocks if present
+      jsonString = jsonString.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+      
+      // Extract just the JSON part
+      const startBrace = jsonString.indexOf('{');
+      const endBrace = jsonString.lastIndexOf('}');
+      if (startBrace >= 0 && endBrace > startBrace) {
+        jsonString = jsonString.slice(startBrace, endBrace + 1);
+      }
+      
+      try {
+        const parsedData = JSON.parse(jsonString.trim());
+        console.log('✅ Successfully parsed JSON response');
+        return parsedData;
+      } catch (jsonError) {
+        console.error('❌ JSON parsing failed:', jsonError);
+        console.log('Invalid JSON string:', jsonString);
+        throw new Error('Failed to parse Gemini response as JSON');
+      }
     } catch (error) {
       lastError = error;
-      console.log(`Gemini API attempt ${attempt} failed:`, error.message);
+      console.error(`❌ Attempt ${attempt} failed:`, {
+        message: error.message,
+        status: error.status,
+        stack: error.stack
+      });
       
       if (error.status === 503 && attempt < maxRetries) {
-        // Wait before retry (exponential backoff)
         const waitTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
-        console.log(`Retrying in ${waitTime/1000} seconds...`);
+        console.log(`⏳ Retrying in ${waitTime/1000} seconds...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
       }
       
-      // If it's not a 503 error or we've exhausted retries, throw the error
+      if (attempt === maxRetries) {
+        console.error('❌ All retry attempts failed');
+      }
+      
       throw error;
     }
   }
@@ -83,8 +231,21 @@ async function extractDataWithGemini(text) {
   throw lastError;
 }
 
+function validateExtractedData(data) {
+  const requiredSections = ['environmental', 'social', 'governance'];
+  const missing = requiredSections.filter(section => !data[section]);
+  
+  if (missing.length > 0) {
+    console.warn(`⚠️ Missing sections in extracted data: ${missing.join(', ')}`);
+  }
+  
+  return missing.length === 0;
+}
+
 module.exports = {
   parsePdf,
   parseXlsx,
   extractDataWithGemini,
+  checkGeminiStatus,
+  validateExtractedData,
 };

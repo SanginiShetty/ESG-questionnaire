@@ -21,10 +21,35 @@ router.post('/upload', [authenticateToken, upload.single('file')], async (req, r
         }
 
     let text;
+    console.log('File details:', {
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      originalName: req.file.originalname,
+      bufferLength: req.file.buffer ? req.file.buffer.length : 0
+    });
+
+    if (!req.file.buffer || req.file.buffer.length === 0) {
+      return res.status(400).json({ error: 'Uploaded file is empty' });
+    }
+
     if (req.file.mimetype === 'application/pdf') {
-      text = await parsePdf(req.file.buffer);
+      try {
+        text = await parsePdf(Buffer.from(req.file.buffer));
+      } catch (error) {
+        return res.status(400).json({ 
+          error: error.message,
+          details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+      }
     } else if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-      text = await parseXlsx(req.file.buffer);
+      try {
+        text = await parseXlsx(req.file.buffer);
+      } catch (error) {
+        return res.status(400).json({ 
+          error: 'Failed to parse Excel file. Please ensure it is a valid .xlsx file.',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+      }
     } else {
       return res.status(400).json({ error: 'Unsupported file type. Please upload a PDF or Excel file.' });
     }
@@ -63,7 +88,12 @@ router.post('/upload', [authenticateToken, upload.single('file')], async (req, r
         });
     } catch (error) {
         console.error('File upload error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        const errorMessage = error.message || 'An unexpected error occurred during file processing.';
+        const errorStatus = error.status || 500;
+        res.status(errorStatus).json({ 
+            error: errorMessage,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 });
 

@@ -1,10 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
-
-// Load environment variables - prioritize .env.local for local development
-dotenv.config({ path: '.env.local' });
-dotenv.config(); // fallback to .env
 
 // Import routes
 const authRoutes = require('./routes/auth');
