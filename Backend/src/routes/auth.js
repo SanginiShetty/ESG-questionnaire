@@ -90,7 +90,7 @@ router.post('/login', [
   }
 });
 
-// Get current user
+// Get current user - user login information
 router.get('/me', async (req, res) => {
   try {
     const authHeader = req.headers['authorization'];

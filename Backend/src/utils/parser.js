@@ -104,7 +104,52 @@ async function parseXlsx(buffer) {
   }
 }
 
-async function extractDataWithGemini(text) {
+function extractBasicESGData(text) {
+  console.log('🔄 Using fallback ESG data extraction...');
+  
+  // Simple regex patterns to extract common ESG metrics
+  const patterns = {
+    carbonEmissions: /carbon[^0-9]*([0-9,]+\.?[0-9]*)[^a-zA-Z]*(?:tonnes?|tons?|t\s+co2|co2e)/gi,
+    waterConsumption: /water[^0-9]*([0-9,]+\.?[0-9]*)[^a-zA-Z]*(?:cubic meters?|m3|liters?|litres?)/gi,
+    energyUsage: /energy[^0-9]*([0-9,]+\.?[0-9]*)[^a-zA-Z]*(?:kwh|mwh|gwh)/gi,
+    wasteGenerated: /waste[^0-9]*([0-9,]+\.?[0-9]*)[^a-zA-Z]*(?:tonnes?|tons?|kg)/gi,
+    employeeTurnover: /turnover[^0-9]*([0-9,]+\.?[0-9]*)[^a-zA-Z]*%/gi,
+    workplaceAccidents: /accidents?[^0-9]*([0-9,]+\.?[0-9]*)/gi,
+    femaleRepresentation: /(?:female|women)[^0-9]*([0-9,]+\.?[0-9]*)[^a-zA-Z]*%/gi,
+    boardIndependence: /(?:independent|board)[^0-9]*([0-9,]+\.?[0-9]*)[^a-zA-Z]*%/gi
+  };
+  
+  const extractNumber = (text, pattern) => {
+    const match = pattern.exec(text);
+    if (match && match[1]) {
+      return parseFloat(match[1].replace(/,/g, ''));
+    }
+    return null;
+  };
+  
+  return {
+    environmental: {
+      carbon_emissions: { value: extractNumber(text, patterns.carbonEmissions), unit: "tonnes CO2e" },
+      water_consumption: { value: extractNumber(text, patterns.waterConsumption), unit: "cubic meters" },
+      energy_usage: { value: extractNumber(text, patterns.energyUsage), unit: "kWh" },
+      waste_generated: { value: extractNumber(text, patterns.wasteGenerated), unit: "tonnes" }
+    },
+    social: {
+      employee_turnover_rate: { value: extractNumber(text, patterns.employeeTurnover), unit: "%" },
+      workplace_accidents: { value: extractNumber(text, patterns.workplaceAccidents), unit: "count" },
+      diversity_and_inclusion: {
+        female_representation: { value: extractNumber(text, patterns.femaleRepresentation), unit: "%" },
+        minority_representation: { value: null, unit: "%" }
+      }
+    },
+    governance: {
+      board_independence: { value: extractNumber(text, patterns.boardIndependence), unit: "%" },
+      executive_compensation_ratio: { value: null, unit: "ratio" }
+    }
+  };
+}
+
+async function extractDataWithGemini(text, useFallback = false) {
   console.log('🤖 Starting Gemini data extraction...');
   
   // Validate and truncate input text if needed
@@ -166,7 +211,7 @@ Rules:
     }
   ];
 
-  const maxRetries = 3;
+  const maxRetries = 5; // Increased from 3 to 5
   let lastError;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -213,9 +258,10 @@ Rules:
         stack: error.stack
       });
       
-      if (error.status === 503 && attempt < maxRetries) {
+      // Check if this is a retryable error (503 Service Unavailable or rate limiting)
+      if ((error.message.includes('503') || error.message.includes('overloaded') || error.message.includes('rate limit')) && attempt < maxRetries) {
         const waitTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
-        console.log(`⏳ Retrying in ${waitTime/1000} seconds...`);
+        console.log(`⏳ Retrying in ${waitTime/1000} seconds due to: ${error.message.substring(0, 100)}...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
       }
@@ -225,6 +271,19 @@ Rules:
       }
       
       throw error;
+    }
+  }
+  
+  // If all retries fail, try fallback extraction
+  if (lastError.message.includes('overloaded') || lastError.message.includes('503')) {
+    console.log('🔄 Gemini is overloaded, trying fallback extraction...');
+    try {
+      const fallbackData = extractBasicESGData(text);
+      console.log('✅ Fallback extraction completed');
+      return fallbackData;
+    } catch (fallbackError) {
+      console.error('❌ Fallback extraction also failed:', fallbackError);
+      throw new Error('Both AI and fallback data extraction failed. Please try again later or check your document format.');
     }
   }
   
@@ -246,6 +305,7 @@ module.exports = {
   parsePdf,
   parseXlsx,
   extractDataWithGemini,
+  extractBasicESGData,
   checkGeminiStatus,
   validateExtractedData,
 };
