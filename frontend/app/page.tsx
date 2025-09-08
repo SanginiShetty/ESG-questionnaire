@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { BarChart3, ShieldCheck, Users, FileText, PieChart, Group, Download } from 'lucide-react';
+import { BarChart3, ShieldCheck, FileText, PieChart, Group, Download } from 'lucide-react';
 
 // Card for ESG metric types
 interface MetricTypeCardProps {
@@ -27,17 +27,6 @@ function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: stri
       <div className="mb-4">{icon}</div>
       <h3 className="font-bold text-lg text-gray-900 mb-2">{title}</h3>
       <p className="text-gray-500 text-sm">{desc}</p>
-    </div>
-  );
-}
-
-// (Optional) Metric summary card for dashboard (not used yet)
-function MetricCard({ title, value, subtitle }: { title: string; value: string; subtitle: string }) {
-  return (
-    <div className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center text-center hover:shadow-lg transition">
-      <h3 className="font-bold text-lg text-gray-900 mb-2">{title}</h3>
-      <span className="text-3xl font-extrabold text-emerald-600 mb-2">{value}</span>
-      <span className="text-gray-500 text-sm">{subtitle}</span>
     </div>
   );
 }

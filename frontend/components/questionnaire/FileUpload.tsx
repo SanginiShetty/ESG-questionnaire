@@ -6,10 +6,12 @@ import { responseApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Loader } from '@/components/ui/Loader';
+import { ESGResponse } from '@/types';
+import { AxiosError } from 'axios';
 
 interface FileUploadProps {
   year: number;
-  onUploadSuccess: (data: any) => void;
+  onUploadSuccess: (data: ESGResponse) => void;
 }
 
 export const FileUpload = ({ year, onUploadSuccess }: FileUploadProps) => {
@@ -96,9 +98,15 @@ export const FileUpload = ({ year, onUploadSuccess }: FileUploadProps) => {
 
       const response = await responseApi.upload(formData, token);
       onUploadSuccess(response.response);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Upload error:', err);
-      setError(err.response?.data?.error || err.message || 'An error occurred during file upload.');
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.error || err.message || 'An error occurred during file upload.');
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setIsLoading(false);
     }
