@@ -55,17 +55,6 @@ export const responseApi = {
 
   delete: (year: number): Promise<{ message: string }> =>
     api.delete(`/api/responses/${year}`).then(res => res.data),
-
-  upload: (formData: FormData, token: string): Promise<{ message: string; response: ESGResponse }> => {
-    const uploadApi = axios.create({
-      baseURL: API_BASE_URL,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return uploadApi.post('/api/responses/upload', formData).then(res => res.data);
-  },
 };
 
 export const summaryApi = {

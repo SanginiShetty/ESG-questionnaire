@@ -16,7 +16,7 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-// Start server
+// Start express server
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV}`);

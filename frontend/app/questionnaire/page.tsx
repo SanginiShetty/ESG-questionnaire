@@ -8,7 +8,6 @@ import { responseApi } from '@/lib/api';
 import { ESGResponse } from '@/types';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp, Calculator, Leaf, Users, Shield } from 'lucide-react';
-import { FileUpload } from '@/components/questionnaire/FileUpload';
 
 export default function QuestionnairePage() {
   const router = useRouter();
@@ -152,11 +151,6 @@ export default function QuestionnairePage() {
     setYear(newYear);
   };
 
-  const handleUploadSuccess = (data: ESGResponse) => {
-    setFormData(data);
-    alert('Data extracted and populated successfully!');
-  };
-
   return (
     <ProtectedRoute>
       <div className="flex min-h-screen bg-gray-50">
@@ -215,11 +209,8 @@ export default function QuestionnairePage() {
                       <li>• Real-time calculations will appear as you enter data</li>
                       <li>• Use consistent units: kWh for electricity, liters for fuel, INR for currency</li>
                       <li>• Ensure female employees ≤ total employees</li>
-                      <li>• Alternatively, upload a PDF/Excel file to auto-populate the form.</li>
                     </ul>
                   </div>
-
-                  <FileUpload year={year} onUploadSuccess={handleUploadSuccess} />
 
                   <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Year Selection */}

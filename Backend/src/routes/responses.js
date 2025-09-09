@@ -4,7 +4,6 @@ const prisma = require('../utils/prisma');
 const { handleValidationErrors } = require('../middleware/validation');
 const { authenticateToken } = require('../middleware/auth');
 const multer = require('multer');
-const { parsePdf, parseXlsx, extractDataWithGemini } = require('../utils/parser');
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -20,71 +19,22 @@ router.post('/upload', [authenticateToken, upload.single('file')], async (req, r
             return res.status(400).json({ error: 'Year is required.' });
         }
 
-    let text;
-    console.log('File details:', {
-      mimetype: req.file.mimetype,
-      size: req.file.size,
-      originalName: req.file.originalname,
-      bufferLength: req.file.buffer ? req.file.buffer.length : 0
-    });
-
-    if (!req.file.buffer || req.file.buffer.length === 0) {
-      return res.status(400).json({ error: 'Uploaded file is empty' });
-    }
-
-    if (req.file.mimetype === 'application/pdf') {
-      try {
-        text = await parsePdf(Buffer.from(req.file.buffer));
-      } catch (error) {
-        return res.status(400).json({ 
-          error: error.message,
-          details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
-      }
-    } else if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-      try {
-        text = await parseXlsx(req.file.buffer);
-      } catch (error) {
-        return res.status(400).json({ 
-          error: 'Failed to parse Excel file. Please ensure it is a valid .xlsx file.',
-          details: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
-      }
-    } else {
-      return res.status(400).json({ error: 'Unsupported file type. Please upload a PDF or Excel file.' });
-    }
-
-        const extractedData = await extractDataWithGemini(text);
-
-        const responseData = {
-            year: parseInt(year),
-            userId: req.user.id,
-            carbonEmissions: extractedData.environmental.carbon_emissions.value,
-            waterConsumption: extractedData.environmental.water_consumption.value,
-            energyUsage: extractedData.environmental.energy_usage.value,
-            wasteGenerated: extractedData.environmental.waste_generated.value,
-            employeeTurnoverRate: extractedData.social.employee_turnover_rate.value,
-            workplaceAccidents: extractedData.social.workplace_accidents.value,
-            femaleRepresentation: extractedData.social.diversity_and_inclusion.female_representation.value,
-            minorityRepresentation: extractedData.social.diversity_and_inclusion.minority_representation.value,
-            boardIndependence: extractedData.governance.board_independence.value,
-            executiveCompensationRatio: extractedData.governance.executive_compensation_ratio.value,
-        };
-
-        const response = await prisma.response.upsert({
-            where: {
-                userId_year: {
-                    userId: req.user.id,
-                    year: responseData.year,
-                },
-            },
-            update: responseData,
-            create: responseData,
+        console.log('File details:', {
+            mimetype: req.file.mimetype,
+            size: req.file.size,
+            originalName: req.file.originalname,
+            bufferLength: req.file.buffer ? req.file.buffer.length : 0
         });
 
+        // Simple file upload without extraction
         res.json({
-            message: 'File processed and data saved successfully',
-            response,
+            message: 'File uploaded successfully (extraction disabled)',
+            fileDetails: {
+                name: req.file.originalname,
+                size: req.file.size,
+                type: req.file.mimetype,
+                year: parseInt(year)
+            }
         });
     } catch (error) {
         console.error('File upload error:', error);

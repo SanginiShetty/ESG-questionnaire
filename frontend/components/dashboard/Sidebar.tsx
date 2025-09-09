@@ -107,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
     { id: 'questionnaire', label: 'Questionnaire', icon: ClipboardList },
     { id: 'summary', label: 'Summary', icon: FileText },
     { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'logout', label: 'Logout', icon: LogOut }, // 👈 moved logout here
+    { id: 'logout', label: 'Logout', icon: LogOut }, 
   ];
 
   return (
