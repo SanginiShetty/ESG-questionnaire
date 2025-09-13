@@ -53,6 +53,16 @@ export const responseApi = {
   save: (data: ESGResponse): Promise<{ message: string; response: ESGResponse }> =>
     api.post('/api/responses', data).then(res => res.data),
 
+  upload: (formData: FormData): Promise<{ message: string; extractedData: ESGResponse; fileDetails: any }> =>
+    api.post('/api/responses/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }).then(res => res.data),
+
+  update: (year: number, data: Partial<ESGResponse>): Promise<{ message: string; response: ESGResponse }> =>
+    api.put(`/api/responses/${year}`, data).then(res => res.data),
+
   delete: (year: number): Promise<{ message: string }> =>
     api.delete(`/api/responses/${year}`).then(res => res.data),
 };

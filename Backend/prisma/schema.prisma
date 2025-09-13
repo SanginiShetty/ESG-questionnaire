@@ -41,7 +41,8 @@ model Response {
   diversityRatio                  Float?
   communitySpendRatio             Float?
   user                            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  
   @@unique([userId, year])
-  @@map("responses")
+  @@map("responses") 
 }
+

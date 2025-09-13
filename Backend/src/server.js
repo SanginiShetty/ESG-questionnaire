@@ -10,11 +10,11 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received. Shutting down gracefully...');
-  await prisma.$disconnect();
-  process.exit(0);
-});
+// process.on('SIGTERM', async () => {
+//   console.log('SIGTERM received. Shutting down gracefully...');
+//   await prisma.$disconnect();
+//   process.exit(0);
+// });
 
 // Start express server
 const server = app.listen(PORT, '0.0.0.0', () => {

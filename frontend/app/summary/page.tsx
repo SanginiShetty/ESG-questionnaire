@@ -15,7 +15,11 @@ import {
   Globe, 
   Shield,
   BarChart3,
-  Activity
+  Activity,
+  Edit,
+  Save,
+  X,
+  Check
 } from 'lucide-react';
 import {
   BarChart,
@@ -39,6 +43,9 @@ export default function SummaryPage() {
   const [loading, setLoading] = useState(true);
   const [activeMainTab, setActiveMainTab] = useState('summary');
   const [activeSubTab, setActiveSubTab] = useState('overview');
+  const [editingYear, setEditingYear] = useState<number | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<ESGResponse>>({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -69,6 +76,66 @@ export default function SummaryPage() {
     } else {
       setActiveMainTab(tab);
     }
+  };
+
+  const startEditing = (response: ESGResponse) => {
+    setEditingYear(response.year);
+    setEditFormData({
+      totalElectricityConsumption: response.totalElectricityConsumption,
+      renewableElectricityConsumption: response.renewableElectricityConsumption,
+      totalFuelConsumption: response.totalFuelConsumption,
+      carbonEmissions: response.carbonEmissions,
+      totalEmployees: response.totalEmployees,
+      femaleEmployees: response.femaleEmployees,
+      averageTrainingHours: response.averageTrainingHours,
+      communityInvestmentSpend: response.communityInvestmentSpend,
+      independentBoardMembersPercent: response.independentBoardMembersPercent,
+      hasDataPrivacyPolicy: response.hasDataPrivacyPolicy,
+      totalRevenue: response.totalRevenue,
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingYear(null);
+    setEditFormData({});
+  };
+
+  const saveChanges = async () => {
+    if (!editingYear) return;
+
+    try {
+      setSaving(true);
+      await responseApi.update(editingYear, editFormData);
+      
+      // Refresh data
+      await loadData();
+      
+      setEditingYear(null);
+      setEditFormData({});
+      
+      // Show success message
+      alert('Data updated successfully!');
+    } catch (error) {
+      console.error('Failed to update data:', error);
+      alert('Failed to update data. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleInputChange = (field: keyof ESGResponse, value: string) => {
+    const numericValue = value === '' ? null : parseFloat(value);
+    setEditFormData(prev => ({
+      ...prev,
+      [field]: isNaN(numericValue as number) ? null : numericValue
+    }));
+  };
+
+  const handleBooleanChange = (field: keyof ESGResponse, value: boolean) => {
+    setEditFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   // Prepare chart data
@@ -232,47 +299,315 @@ export default function SummaryPage() {
 
   const renderDataView = () => (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold text-gray-900">Raw Data View</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold text-gray-900">ESG Data Management</h2>
+        <p className="text-gray-600">Click the edit button to modify any response data</p>
+      </div>
       
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">ESG Response Data</h3>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carbon Intensity</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Renewable %</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diversity %</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Community Spend %</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {responses.map((response, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {response.year}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {response.carbonIntensity?.toFixed(4) || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {response.renewableElectricityRatio?.toFixed(1) || 'N/A'}%
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {response.diversityRatio?.toFixed(1) || 'N/A'}%
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {response.communitySpendRatio?.toFixed(2) || 'N/A'}%
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="space-y-4">
+        {responses.map((response, index) => (
+          <div key={response.year} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-medium text-gray-900">Financial Year {response.year}</h3>
+              
+              {editingYear === response.year ? (
+                <div className="flex space-x-2">
+                  <button
+                    onClick={saveChanges}
+                    disabled={saving}
+                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {saving ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={cancelEditing}
+                    disabled={saving}
+                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => startEditing(response)}
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </button>
+              )}
+            </div>
+            
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Environmental Section */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-green-700 flex items-center">
+                    <Globe className="h-5 w-5 mr-2" />
+                    Environmental
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Total Electricity Consumption (kWh)
+                      </label>
+                      {editingYear === response.year ? (
+                        <input
+                          type="number"
+                          value={editFormData.totalElectricityConsumption || ''}
+                          onChange={(e) => handleInputChange('totalElectricityConsumption', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{response.totalElectricityConsumption?.toLocaleString() || 'N/A'}</p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Renewable Electricity (kWh)
+                      </label>
+                      {editingYear === response.year ? (
+                        <input
+                          type="number"
+                          value={editFormData.renewableElectricityConsumption || ''}
+                          onChange={(e) => handleInputChange('renewableElectricityConsumption', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{response.renewableElectricityConsumption?.toLocaleString() || 'N/A'}</p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Total Fuel Consumption (L)
+                      </label>
+                      {editingYear === response.year ? (
+                        <input
+                          type="number"
+                          value={editFormData.totalFuelConsumption || ''}
+                          onChange={(e) => handleInputChange('totalFuelConsumption', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{response.totalFuelConsumption?.toLocaleString() || 'N/A'}</p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Carbon Emissions (T CO2e)
+                      </label>
+                      {editingYear === response.year ? (
+                        <input
+                          type="number"
+                          value={editFormData.carbonEmissions || ''}
+                          onChange={(e) => handleInputChange('carbonEmissions', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{response.carbonEmissions?.toLocaleString() || 'N/A'}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Section */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-blue-700 flex items-center">
+                    <Users className="h-5 w-5 mr-2" />
+                    Social
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Total Employees
+                      </label>
+                      {editingYear === response.year ? (
+                        <input
+                          type="number"
+                          value={editFormData.totalEmployees || ''}
+                          onChange={(e) => handleInputChange('totalEmployees', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{response.totalEmployees?.toLocaleString() || 'N/A'}</p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Female Employees
+                      </label>
+                      {editingYear === response.year ? (
+                        <input
+                          type="number"
+                          value={editFormData.femaleEmployees || ''}
+                          onChange={(e) => handleInputChange('femaleEmployees', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{response.femaleEmployees?.toLocaleString() || 'N/A'}</p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Average Training Hours
+                      </label>
+                      {editingYear === response.year ? (
+                        <input
+                          type="number"
+                          value={editFormData.averageTrainingHours || ''}
+                          onChange={(e) => handleInputChange('averageTrainingHours', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{response.averageTrainingHours || 'N/A'}</p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Community Investment (INR)
+                      </label>
+                      {editingYear === response.year ? (
+                        <input
+                          type="number"
+                          value={editFormData.communityInvestmentSpend || ''}
+                          onChange={(e) => handleInputChange('communityInvestmentSpend', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{response.communityInvestmentSpend?.toLocaleString() || 'N/A'}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Governance Section */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-purple-700 flex items-center">
+                    <Shield className="h-5 w-5 mr-2" />
+                    Governance
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Independent Board Members (%)
+                      </label>
+                      {editingYear === response.year ? (
+                        <input
+                          type="number"
+                          max="100"
+                          min="0"
+                          value={editFormData.independentBoardMembersPercent || ''}
+                          onChange={(e) => handleInputChange('independentBoardMembersPercent', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{response.independentBoardMembersPercent || 'N/A'}%</p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Data Privacy Policy
+                      </label>
+                      {editingYear === response.year ? (
+                        <select
+                          value={editFormData.hasDataPrivacyPolicy ? 'true' : 'false'}
+                          onChange={(e) => handleBooleanChange('hasDataPrivacyPolicy', e.target.value === 'true')}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        >
+                          <option value="true">Yes</option>
+                          <option value="false">No</option>
+                        </select>
+                      ) : (
+                        <p className="text-gray-900">
+                          {response.hasDataPrivacyPolicy ? (
+                            <span className="text-green-600 flex items-center">
+                              <Check className="h-4 w-4 mr-1" />
+                              Yes
+                            </span>
+                          ) : (
+                            <span className="text-red-600 flex items-center">
+                              <X className="h-4 w-4 mr-1" />
+                              No
+                            </span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Total Revenue (INR)
+                      </label>
+                      {editingYear === response.year ? (
+                        <input
+                          type="number"
+                          value={editFormData.totalRevenue || ''}
+                          onChange={(e) => handleInputChange('totalRevenue', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      ) : (
+                        <p className="text-gray-900">{response.totalRevenue?.toLocaleString() || 'N/A'}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Calculated Metrics */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="text-lg font-semibold text-gray-700 mb-4">Calculated Metrics</h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm font-medium text-gray-500">Carbon Intensity</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {response.carbonIntensity?.toFixed(4) || 'N/A'}
+                    </p>
+                    <p className="text-xs text-gray-500">T CO2e / INR</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm font-medium text-gray-500">Renewable Ratio</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {response.renewableElectricityRatio?.toFixed(1) || 'N/A'}%
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm font-medium text-gray-500">Diversity Ratio</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {response.diversityRatio?.toFixed(1) || 'N/A'}%
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm font-medium text-gray-500">Community Spend Ratio</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {response.communitySpendRatio?.toFixed(2) || 'N/A'}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -333,7 +668,7 @@ export default function SummaryPage() {
                   <nav className="flex space-x-8" aria-label="Tabs">
                     {[
                       { id: 'overview', name: 'Overview', icon: BarChart3 },
-                      { id: 'data', name: 'Data View', icon: FileText }
+                      { id: 'data', name: 'Data Management', icon: Edit }
                     ].map((tab) => {
                       const Icon = tab.icon;
                       return (
