@@ -173,7 +173,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ year, onUploadSuccess })
         });
       }, 2000);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       setUploadProgress({
         uploading: false,
         processing: false,
@@ -181,8 +181,13 @@ export const FileUpload: React.FC<FileUploadProps> = ({ year, onUploadSuccess })
         stage: ''
       });
       
-      if (err.response?.data?.error) {
-        setError(err.response.data.error);
+      if (err && typeof err === 'object' && 'response' in err) {
+        const errorResponse = err as { response?: { data?: { error?: string } } };
+        if (errorResponse.response?.data?.error) {
+          setError(errorResponse.response.data.error);
+        } else {
+          setError('Upload failed. Please try again.');
+        }
       } else {
         setError('Upload failed. Please try again.');
       }
@@ -345,7 +350,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ year, onUploadSuccess })
           <h4 className="font-medium text-blue-900 mb-2">📄 Upload Tips</h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• Ensure your document contains ESG metrics with clear labels</li>
-            <li>• Include numerical values with units (e.g., "Carbon emissions: 1,234 tonnes CO2e")</li>
+            <li>• Include numerical values with units (e.g., &quot;Carbon emissions: 1,234 tonnes CO2e&quot;)</li>
             <li>• PDF files should have selectable text (not scanned images)</li>
             <li>• Excel files should have data in the first sheet</li>
           </ul>

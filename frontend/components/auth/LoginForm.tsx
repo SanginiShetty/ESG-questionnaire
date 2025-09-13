@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock, Leaf, TrendingUp, Users } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Leaf } from 'lucide-react';
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;

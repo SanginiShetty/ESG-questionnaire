@@ -10,7 +10,6 @@ import { ESGResponse, SummaryData } from '@/types';
 import { Loader } from '@/components/ui/Loader';
 import { useRouter } from 'next/navigation';
 import { 
-  FileText, 
   Users, 
   Globe, 
   Shield,

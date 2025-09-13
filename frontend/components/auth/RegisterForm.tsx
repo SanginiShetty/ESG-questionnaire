@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock, User, Leaf, TrendingUp, Users, Check, X } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Leaf, Check, X } from 'lucide-react';
 
 interface RegisterFormProps {
   onSubmit: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
@@ -16,7 +14,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, loading = 
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Password validation states
   const [passwordValidation, setPasswordValidation] = useState({

@@ -207,7 +207,7 @@ export default function QuestionnairePage() {
                       id="year"
                       value={year}
                       onChange={handleYearChange}
-                      className="block w-full max-w-xs px-3 py-2 text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      className="block w-full max-w-xs px-3 py-2 text-base border text-gray-900 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     >
                       {Array.from({ length: 10 }, (_, i) => {
                         const yearOption = new Date().getFullYear() - i;
@@ -541,17 +541,6 @@ export default function QuestionnairePage() {
                     </div>
                   </div>
                 )}
-              </div>
-
-              {/* File Upload Section */}
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-900">Document Upload</h3>
-                  <p className="text-sm text-gray-600 mt-1">Upload ESG reports for AI-powered data extraction (PDF or Excel)</p>
-                </div>
-                <div className="p-6">
-                  <FileUpload year={year || new Date().getFullYear()} onUploadSuccess={handleFileUploadSuccess} />
-                </div>
               </div>
 
               {/* Submit Button */}

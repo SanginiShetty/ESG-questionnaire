@@ -53,7 +53,7 @@ export const responseApi = {
   save: (data: ESGResponse): Promise<{ message: string; response: ESGResponse }> =>
     api.post('/api/responses', data).then(res => res.data),
 
-  upload: (formData: FormData): Promise<{ message: string; extractedData: ESGResponse; fileDetails: any }> =>
+  upload: (formData: FormData): Promise<{ message: string; extractedData: ESGResponse; fileDetails: { fileName: string; fileSize: number; fileType: string } }> =>
     api.post('/api/responses/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
