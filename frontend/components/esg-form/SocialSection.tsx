@@ -69,3 +69,4 @@ export const SocialSection: React.FC<SocialSectionProps> = ({
     </div>
   );
 };
+

@@ -80,3 +80,4 @@ export const YearSelector: React.FC<YearSelectorProps> = ({
     </div>
   );
 };
+

@@ -217,3 +217,4 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, loading = 
     </div>
   );
 };
+

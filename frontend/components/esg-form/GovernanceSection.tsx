@@ -82,3 +82,4 @@ export const GovernanceSection: React.FC<GovernanceSectionProps> = ({
     </div>
   );
 };
+

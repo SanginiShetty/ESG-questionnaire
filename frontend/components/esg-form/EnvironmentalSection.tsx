@@ -21,7 +21,7 @@ export const EnvironmentalSection: React.FC<EnvironmentalSectionProps> = ({
     <div className="space-y-6">
       <h3 className="text-lg font-medium text-gray-900">Environmental Metrics</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 cd gap-4">
         <Input
           label="Total Electricity Consumption (kWh)"
           type="number"
